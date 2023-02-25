@@ -2,20 +2,12 @@ package machines
 
 import regex._
 import dfa._
-import machines._
 
-// TODO: Add your code below
 given Conversion[Char, RegularLanguage] = Character(_)
 
 given Conversion[String, RegularLanguage] = s => s.map(Character(_)).reduce(Concat(_,_))
 
-/*
-A. implement the binary operator ||, which corresponds to the union operation
-B. implement the binary operator ~, which corresponds to the concatenation operation
-C. implement the postfix operator <*>, which corresponds to the Kleene star operation
-D. implement the postfix operator <+>, which means "one or more repetitions of the preceding pattern"
-E. implement the repetition operator {n} which means "n repetitions of the preceding pattern"
-*/
+given Conversion[RegularLanguage, DFA] = r => regexToDFA(r, r.chars)
 
 extension (r: RegularLanguage)
     def ||(s: RegularLanguage) = Union(r,s)
@@ -26,3 +18,10 @@ extension (r: RegularLanguage)
         if n <= 0 then Empty
         else Array.fill(n)(r).reduce(Concat(_,_))
     def toDFA(using s: Set[Char]) = regexToDFA(r, s)
+    def chars: Set[Char] = r match
+        case Empty => Set[Char]()
+        case Epsilon => Set[Char]()
+        case Character(c: Char) => Set[Char](c)
+        case Union(r1: RegularLanguage, r2: RegularLanguage) => r1.chars ++ r2.chars
+        case Concat(r1: RegularLanguage, r2: RegularLanguage) => r1.chars ++ r2.chars
+        case Star(r0: RegularLanguage) => r0.chars
